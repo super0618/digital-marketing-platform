@@ -1,0 +1,10 @@
+{
+  "timeout": 3000,
+  "load": {
+    "before": [],
+    "order": [
+      "Define the hooks' oad order by putting their names in this array in the right order"
+    ],
+    "after": []
+  }
+}
