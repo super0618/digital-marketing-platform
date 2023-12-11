@@ -4,10 +4,11 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
+require('express-async-errors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 // Import methods
-const { dbConnection } = require('./middleware/helpers');
+const { dbConnection, errorHandler } = require('./middleware/helpers');
 
 // Database Connection
 dbConnection();
@@ -42,8 +43,10 @@ app.use('/api/user-auth', require('./routes/user_auth'));
 
 // Error handling middleware
 app.use(function (err, req, res, next) {
+  console.log('****SERVER_ERROR****');
+  console.log(err);
   return res.status(500).json({
-    error: "Something went wrong!"
+    error: errorHandler(err) || err.message || "Something went wrong!"
   });
 });
 
