@@ -19,6 +19,19 @@ const adminSchema = new Schema({
     trim: true,
     maxLength: 32
   },
+  district: {
+    type: String,
+    trim: true,
+    maxLength: 32
+  },
+  muncipality: {
+    type: String,
+    trim: true,
+    maxLength: 32
+  },
+  wardno: {
+    type: Number
+  },
   documents: {
     type: Schema.Types.ObjectId,
     ref: "admin",
