@@ -9,7 +9,7 @@ const {
   forgotPassword,
   refreshToken,
   logout
-} = require("../controllers/admin_auth");
+} = require("../controllers/user_auth");
 
 const { validateSignUp, passwordResetValidator } = require("../middleware/validator");
 

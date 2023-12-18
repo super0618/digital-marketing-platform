@@ -17,18 +17,28 @@ const adminSchema = new Schema({
   address: {
     type: String,
     trim: true,
-    required: true,
     maxLength: 32
+  },
+  district: {
+    type: String,
+    trim: true,
+    maxLength: 32
+  },
+  muncipality: {
+    type: String,
+    trim: true,
+    maxLength: 32
+  },
+  wardno: {
+    type: Number
   },
   documents: {
     type: Schema.Types.ObjectId,
     ref: "admin",
-    required: true
   },
   phone: {
     type: Number,
     max: 9999999999,
-    required: true,
     unique: true
   },
   isVerified: {
@@ -51,6 +61,14 @@ const adminSchema = new Schema({
     type: String,
     enum: ["admin", "superadmin"],
     default: "admin"
+  },
+  resetPasswordLink: {
+    type: String,
+    default: ""
+  },
+  emailVerifyLink: {
+    type: String,
+    default: ""
   },
   isDeleted: {
     type: Date,

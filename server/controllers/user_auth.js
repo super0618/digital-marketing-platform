@@ -1,30 +1,12 @@
-const Admin = require('../models/Admin');
+const User = require('../models/User');
 const { sendEmail } = require('../middleware/helpers');
-const jwt = require('jsonwebtoken');
+const jwt = require(jsonwebtoken);
 const _ = require('lodash');
-const refreshToken = require('../models/RefreshToken');
+const RefreshToken = require('../models/RefreshToken');
 
-/**
- * @swagger
- * 
- * /admin-signup
- *  post:
- *    description: Admin Signup
- *    produces:
- *      - application/json
- *    parameters:
- *      - name: admin
- *        description: User object
- *        in: body
- *        required: true
- *        type: string
- *    responses:
- *      200:
- *        description: users
- */
 exports.signup = async (req, res) => {
-  let adminExists = await Admin.findOne({ email: req.body.email });
-  if(adminExists)
+  let userExists = await User.findOne({ email: req.body.email });
+  if(userExists)
     return res.status(403).json({
       error: "Email exists already!"
     });
@@ -33,15 +15,15 @@ exports.signup = async (req, res) => {
     process.env.JWT_EMAIL_VERIFICATION_KEY,
     { expiresIn: process.env.EMAIL_TOKEN_EXPIRE_TIME }
   );
-  req.body.emailVerifyLink = token;
-  let admin = new Admin(req.body);
-  // await admin.save();
+  // req.body.emailVerifyLink = token;
+  let user = new User(req.body);
+  await user.save();
   const mailingData = {
     from: "Ecom",
-    to: admin.email,
+    to: user.email,
     subject: "email verification",
-    html: `<p>Hi, ${admin.name}. </p></br>
-          <a href="${process.env.ADMIN_CRM_ROUTE}/email-verfify?token=${token}">Click me to verify your admin account</a>`
+    html: `<p>Hi, ${user.name}. </p></br>
+          <a href="${process.env.CLIENT_URL}/email-verfify?token=${token}">Click me to verify your user account</a>`
   };
   await sendEmail(mailingData);
   res.status(200)
@@ -53,37 +35,36 @@ exports.signup = async (req, res) => {
 // Verify email link
 exports.emailverify = async (req, res) => {
   const { token } = req.query;
-  let admin = await Admin.findOne({ emailVerifyLink: token });
-  if(!admin)
+  let user = await User.findOne({ emailVerifyLink: token });
+  if(!user || (user && user.emailVerifyLink === ''))
     return res.status(401).json({
       error: "Token is invalid!"
     });
-  admin.emailVerifyLink = '';
-  admin.updated = Date.now();
-  await admin.save();
+  user.emailVerifyLink = '';
+  user.updated = Date.now();
+  await user.save();
   res.status(200).json({ msg: "Successfully signup!" });
 };
 
 exports.signin = async (req, res) => {
   const { email, password } = req.body;
-  let admin = await Admin.findByCredentials(email, password)
-  if(!admin) {
+  let user = await User.findByCredentials(email, password);
+  if(!user) {
     return res.status(400).json({
       error: "Email or password is invalid."
     });
   }
 
-  if(admin.emailVerifyLink !== '') {
+  if(user.emailVerifyLink !== '') {
     return res.status(400).json({
       error: "Please verify your email address."
     });
   }
 
   const payload = {
-    _id: admin._id,
-    name: admin.name,
-    email: admin.email,
-    role: admin.role
+    _id: user._id,
+    name: user.name,
+    email: user.email,
   };
   const accessToken = jwt.sign(
     payload,
@@ -98,17 +79,16 @@ exports.signin = async (req, res) => {
 };
 
 exports.socialLogin = async (req, res) => {
-  let admin = await Admin.fineOne({ email: req.body.email });
-  if(!admin) {
-    // create a new admin and login
-    admin = new Admin(req.body);
-    admin = await admin.save();
-    req.admin = admin;
+  let user = await User.fineOne({ email: req.body.email });
+  if(!user) {
+    // create a new user and login
+    user = new User(req.body);
+    user = await user.save();
+    req.user = user;
     const payload = {
-      _id: admin._id,
-      name: admin.name,
-      email: admin.email,
-      role: admin.role
+      _id: user._id,
+      name: user.name,
+      email: user.email,
     };
     const accessToken = jwt.sign(
       payload,
@@ -121,21 +101,20 @@ exports.socialLogin = async (req, res) => {
     res.setHeader('Set-Cookie', `refreshToken=${refreshToken.refreshToken}; HttpOnly`);
     return res.json({ accessToken });
   } else {
-    // update existing admin with new social info and login
+    // update existing user with new social info and login
 
-    admin = _.extend(admin, req.body);
-    admin = await admin.save();
-    req.admin = admin;
+    user = _.extend(user, req.body);
+    user = await user.save();
+    req.user = user;
     const payload = {
-      _id: admin._id,
-      name: admin.name,
-      email: admin.email,
-      role: admin.role
+      _id: user._id,
+      name: user.name,
+      email: user.email,
     };
     const accessToken = jwt.sign(
       payload,
       process.env.JWT_SIGNIN_KEY,
-      { expiresIn: process.env.SIGNIN_EXPIRE_TIME }
+      { expiresIn: '10h' }
     );
     let refreshToken = { refreshToken: jwt.sign(payload, process.env.REFRESH_TOKEN_KEY) };
     refreshToken = new RefreshToken(refreshToken);
@@ -150,12 +129,11 @@ exports.refreshToken = async (req, res) => {
   if(refreshToken == null) return res.status(401).json({error: "Token is Null"});
   let token = await RefreshToken.fineOne({ refreshToken });
   if(!token) return res.status(403).json({ error: "Invalid refresh token" });
-  const admin = await jwt.verify(token.refreshToken, process.env.REFRESH_TOKEN_KEY);
+  const user = await jwt.verify(token.refreshToken, process.env.REFRESH_TOKEN_KEY);
   const payload = {
-    _id: admin._id,
-    name: admin.name,
-    email: admin.email,
-    role: admin.role
+    _id: user._id,
+    name: user.name,
+    email: user.email,
   };
   const accessToken = jwt.sign(
     payload,
@@ -176,26 +154,25 @@ exports.forgotPassword = async (req, res) => {
   if(!req.body.email) return res.status(400).json({ error: "No Email in request body" });
 
   const { email } = req.body;
-  const admin = await Admin.findOne({ email });
-  if(!admin)
+  const user = await User.findOne({ email });
+  if(!user)
     return res.status(401).json({
-      error: "Admin with that email does not exist!"
+      error: "User with that email does not exist!"
     });
 
   const token = jwt.sign(
-    { _id: admin._id },
+    { _id: user._id },
     process.env.JWT_EMAIL_VERIFICATION_KEY,
     { expiresIn: process.env.EMAIL_TOKEN_EXPIRE_TIME }
   );
   const mailingData = {
     from: "Ecom",
-    to: admin.email,
+    to: user.email,
     subject: "Password reset Link",
-    html: `<p>Hi, ${admin.name}.</p></br>
-          <a href="${process.env.ADMIN_CRM_ROUTE}/reset-password?token=${token}">Click me to reset your password</a>`
+    html: `<p>Hi, ${user.name}.</p></br>
+          <a href="${process.env.CLIENT_URL}/reset-password?token=${token}">Click me to reset your password</a>`
   };
-
-  await admin.updateOne({ resetPasswordLink: token });
+  await user.updateOne({ resetPasswordLink: token });
   await sendEmail(mailingData);
   res.status(200).json({
     msg: `Email has been sent to ${email}. Follow the instructions to reset your password.`
@@ -205,9 +182,9 @@ exports.forgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   const { resetPasswordLink, newPassword } = req.body;
 
-  let admin = await Admin.findOne({ resetPasswordLink });
-  // if err or no admin
-  if(!admin || (admin && admin.resetPasswordLink === ''))
+  let user = await User.findOne({ resetPasswordLink });
+  // if err or no user
+  if(!user || (user && user.resetPasswordLink === ''))
     return res.status(401).json({
       error: "Invalid Link!"
     });
@@ -217,13 +194,13 @@ exports.resetPassword = async (req, res) => {
     resetPasswordLink: ""
   };
 
-  admin = _.extend(admin, updatedFields);
-  admin.updated = Date.now();
+  user = _.extend(user, updatedFields);
+  user.updated = Date.now();
 
-  await admin.save();
+  await user.save();
   res.json({
     msg: `Great! Now you can login with your new password.`
-  })
+  });
 };
 
 // authentication middleware
@@ -234,14 +211,14 @@ exports.auth = async (req, res, next) => {
     if(token) {
       const user = await parseToken(token);
       if(user._id) {
-        const admin = await Admin.findById(user._id).select('-password -salt');
-        if(admin) {
-          req.admin = admin;
+        const user = await User.findById(user._id).select('-password -salt');
+        if(user) {
+          req.user = user;
           return next();
         }
-        throw 'Invalid Admin';
+        throw 'Invalid User';
       }
-      throw admin.error;
+      throw user.error;
     }
     throw 'Token not found';
   } catch (error) {
@@ -262,26 +239,12 @@ function parseToken(token) {
 // has authorization middleware
 exports.hasAuthorization = async (req, res, next) => {
   try{
-    const sameAdmin = req.profile && req.admin && req.profile._id.toString() === req.admin._id.toString();
-    const superadmin = req.admin && req.admin.role === 'superadmin';
-    const canAccess = superadmin || sameAdmin;
-    if(canAccess) {
+    const sameAdmin = req.profile && req.user && req.profile._id.toString() === req.user._id.toString();
+    if (sameAdmin) {
       return next();
     }
-    throw 'Admin is not authorized to perform this action';
+    throw 'User is not authorized to perform this action';
   } catch (error) {
     res.status(403).json({ error: error })
-  }
-}
-
-exports.isSuperAdmin = async (req, res, next) => {
-  try {
-    const isSuperAdmin = req.admin && req.admin.role === 'superadmin';
-    if(isSuperAdmin) {
-      return next();
-    }
-    throw 'Unauthorized Admin'
-  } catch (error) {
-    res.status(403).json({ error: error });
   }
 }

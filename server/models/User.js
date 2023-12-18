@@ -22,7 +22,6 @@ const userSchema = new Schema({
   address: {
     type: String,
     trim: true,
-    required: true,
     maxLength: 32
   },
   email: {
@@ -33,7 +32,6 @@ const userSchema = new Schema({
   phone: {
     type: Number,
     max: 9999999999,
-    requried: true
   },
   password: {
     type: String,
@@ -45,14 +43,12 @@ const userSchema = new Schema({
   photo: {
     type: String
   },
-  googleID: {
-    type: String
-  },
-  facebookID: {
-    type: String
-  },
   resetPasswordLink: {
-    data: String,
+    type: String,
+    default: ""
+  },
+  emailVerifyLink: {
+    type: String,
     default: ""
   },
   salt: String,
