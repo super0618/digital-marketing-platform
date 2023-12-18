@@ -6,7 +6,9 @@ const {
   emailverify,
   socialLogin,
   resetPassword,
-  forgotPassword
+  forgotPassword,
+  refreshToken,
+  logout
 } = require("../controllers/admin_auth");
 
 const { validateSignUp, passwordResetValidator } = require("../middleware/validator");
@@ -19,5 +21,7 @@ router.put("/email-verify", emailverify);
 router.post("/social-login", socialLogin);
 router.put("/forgot-password", forgotPassword);
 router.put("/reset-password", passwordResetValidator, resetPassword);
+router.post('/refresh-token', refreshToken);
+router.delete('/logout', logout);
 
 module.exports = router;

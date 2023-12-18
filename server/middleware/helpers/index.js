@@ -1,6 +1,7 @@
 module.exports = {
   errorHandler: require("./dbErrorHandler").errorHandler,
   dbConnection: require("./dbConnection"),
-  uploadAdminImage: require("./multer").uploadAdminImage,
+  uploadAdminPhoto: require("./multer").uploadAdminPhoto,
+  uploadUserPhoto: require("./multer").uploadUserPhoto,
   sendEmail: require("./mailer").sendEmail
 }
