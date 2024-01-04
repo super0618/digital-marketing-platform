@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 
 class Home extends Component {
   render() {
-    console.log('1')
     return (
-      <div>HOME</div>
+      <div className="abcd">HOME</div>
     )
   }
 }
