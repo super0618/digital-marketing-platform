@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Header from '../Components/Header';
 import MainCrousel from '../Components/Carousel';
+import ProductSlider from '../Components/ProductSlider';
 
 class Home extends Component {
   render() {
@@ -10,6 +11,8 @@ class Home extends Component {
         <div className='main-carousel'>
           <MainCrousel />
         </div>
+        <ProductSlider />
+        Body
       </div>
     )
   }
