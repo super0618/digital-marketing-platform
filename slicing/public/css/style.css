@@ -109,6 +109,19 @@ input:hover, input .ant-input-focused, input:focus {
   box-shadow: unset !important;
 }
 
+button {
+  width: 120px !important;
+  height: 35px !important;
+  border-radius: 5px !important;
+  text-transform: capitalize !important;
+  border: 0px;
+}
+
+button.primary {
+  background-color: #61ce70;
+  color: #fff;
+}
+
 .abcd {
   color: red;
 }
@@ -168,6 +181,17 @@ input:hover, input .ant-input-focused, input:focus {
   position: absolute;
   top: 25%;
   left: 8%;
+  text-align: left;
+}
+
+.main-carousel .img-text .carousel-text h2 {
+  margin-bottom: 0px;
+}
+
+.main-carousel .img-text .carousel-text .main-text {
+  font-size: 75px;
+  font-weight: bold;
+  line-height: 60px;
 }
 
 .main-carousel .img-text img {
@@ -190,7 +214,12 @@ input:hover, input .ant-input-focused, input:focus {
   opacity: 1 !important;
 }
 
-.ant-carousel .slick-dots li button:focus, .ant-carousel .slick-dots li button:hover {
+.ant-carousel .slick-dots-bottom {
+  bottom: 25px !important;
+}
+
+.ant-carousel .slick-dots li button:focus,
+.ant-carousel .slick-dots li button:hover {
   opacity: 1 !important;
 }
 
