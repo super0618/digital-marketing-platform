@@ -1,0 +1,12 @@
+@import 'fonts';
+@import 'variables';
+@import 'base';
+@import './Layouts/layouts';
+
+// Pages
+@import './Pages/home';
+
+// Components
+@import './Components/header';
+@import './Components/carousel';
+@import './Components/card';
